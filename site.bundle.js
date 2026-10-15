@@ -53,6 +53,7 @@
         const gap = parseFloat(getComputedStyle(stack).rowGap) || 0;
         const height = Math.max(...items.map((item) => item.offsetHeight));
         stack.style.setProperty("--stack-row", `${height + gap}px`);
+        stack.style.setProperty("--stack-count", items.length);
       });
     };
 
