@@ -15,7 +15,9 @@
   };
 
   const FLICK_CARDS = {
-    brightness: [1, 0.7, 0.5, 0.35]
+    brightness:   [1, 0.7, 0.5, 0.35],
+    innerOpacity: [1, 0.5, 0.25, 0],
+    innerSelector: ".flick-card_inner"
   };
 
   function initLenis() {
@@ -197,11 +199,13 @@
   function initFlickCards() {
     const sliders = document.querySelectorAll("[data-flick-cards-init]");
     const b = FLICK_CARDS.brightness;
+    const io = FLICK_CARDS.innerOpacity;
 
     sliders.forEach((slider) => {
       const list = slider.querySelector("[data-flick-cards-list]");
       if (!list) return;
       const cards = Array.from(list.querySelectorAll("[data-flick-cards-item]"));
+      const inners = cards.map((card) => card.querySelector(FLICK_CARDS.innerSelector));
       const total = cards.length;
       let activeIndex = 0;
 
@@ -224,14 +228,14 @@
         else if (diff < -total / 2) diff += total;
 
         switch (diff) {
-          case  0: return { x: 0,   y: 0, rot: 0,   s: 1,   o: 1, b: b[0], z: 5 };
-          case  1: return { x: 25,  y: 1, rot: 10,  s: 0.9, o: 1, b: b[1], z: 4 };
-          case -1: return { x: -25, y: 1, rot: -10, s: 0.9, o: 1, b: b[1], z: 4 };
-          case  2: return { x: 45,  y: 5, rot: 15,  s: 0.8, o: 1, b: b[2], z: 3 };
-          case -2: return { x: -45, y: 5, rot: -15, s: 0.8, o: 1, b: b[2], z: 3 };
+          case  0: return { x: 0,   y: 0, rot: 0,   s: 1,   o: 1, b: b[0], io: io[0], z: 5 };
+          case  1: return { x: 25,  y: 1, rot: 10,  s: 0.9, o: 1, b: b[1], io: io[1], z: 4 };
+          case -1: return { x: -25, y: 1, rot: -10, s: 0.9, o: 1, b: b[1], io: io[1], z: 4 };
+          case  2: return { x: 45,  y: 5, rot: 15,  s: 0.8, o: 1, b: b[2], io: io[2], z: 3 };
+          case -2: return { x: -45, y: 5, rot: -15, s: 0.8, o: 1, b: b[2], io: io[2], z: 3 };
           default: {
             const dir = diff > 0 ? 1 : -1;
-            return { x: 55 * dir, y: 5, rot: 20 * dir, s: 0.6, o: 0, b: b[3], z: 2 };
+            return { x: 55 * dir, y: 5, rot: 20 * dir, s: 0.6, o: 0, b: b[3], io: io[3], z: 2 };
           }
         }
       }
@@ -266,6 +270,14 @@
             ease: "power2.out",
             filter: `brightness(${cfg.b})`
           });
+
+          if (inners[i]) {
+            gsap.to(inners[i], {
+              duration: 0.4,
+              ease: "power2.out",
+              opacity: cfg.io
+            });
+          }
         });
       }
 
@@ -310,6 +322,10 @@
               opacity: mix("o"),
               filter: `brightness(${mix("b").toFixed(3)})`
             });
+
+            if (inners[i]) {
+              gsap.set(inners[i], { opacity: mix("io") });
+            }
           });
         },
 
