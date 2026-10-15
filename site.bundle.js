@@ -14,6 +14,56 @@
     pentRotate: 6
   };
 
+  function initLenis() {
+    if (typeof Lenis === "undefined") {
+      console.warn("[yellowlime] Lenis niet gevonden.");
+      return;
+    }
+
+    const lenis = new Lenis({
+      lerp: 0.1,
+      wheelMultiplier: 1
+    });
+
+    if (typeof gsap !== "undefined") {
+      if (typeof ScrollTrigger !== "undefined") {
+        lenis.on("scroll", ScrollTrigger.update);
+      }
+      gsap.ticker.add((time) => lenis.raf(time * 1000));
+      gsap.ticker.lagSmoothing(0);
+    } else {
+      const raf = (time) => {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      };
+      requestAnimationFrame(raf);
+    }
+
+    window.lenis = lenis;
+  }
+
+  function initCardStacks() {
+    const stacks = document.querySelectorAll(".card-stack");
+    if (!stacks.length) return;
+
+    const update = () => {
+      stacks.forEach((stack) => {
+        const items = [...stack.querySelectorAll(":scope > .card-stack__item")];
+        if (!items.length) return;
+        const gap = parseFloat(getComputedStyle(stack).rowGap) || 0;
+        const height = Math.max(...items.map((item) => item.offsetHeight));
+        stack.style.setProperty("--stack-row", `${height + gap}px`);
+      });
+    };
+
+    update();
+
+    const ro = new ResizeObserver(update);
+    stacks.forEach((stack) => {
+      stack.querySelectorAll(":scope > .card-stack__item").forEach((item) => ro.observe(item));
+    });
+  }
+
   function initMainButtons() {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -140,6 +190,8 @@
   }
 
   function init() {
+    initLenis();
+    initCardStacks();
     initDirectionalButtonHover();
 
     if (typeof gsap === "undefined" || typeof SplitText === "undefined") {
