@@ -1,40 +1,24 @@
-/*
- * Yellowlime – interacties
- * Vereist: GSAP core + SplitText (via Webflow Site settings → GSAP)
- *
- * Componenten:
- *  - Main button (.main_button_wrap): slanted text reveal, vijfhoek-morph, pijl-loop
- *  - Underline link ([data-underline-link]): puur CSS, zie yellowlime.css
- */
-
 (() => {
-  // ---------------------------------------------------------------------------
-  // Config
-  // ---------------------------------------------------------------------------
   const MAIN_BUTTON = {
-    duration: 0.5,        // duur per letter
-    stagger: 0.012,       // vertraging tussen letters
-    ease: "expo.out",     // snel weg, zacht landen
-    move: 1.05,           // afstand als factor van de buttonhoogte (1 = precies eruit)
-    drift: 12,            // zijwaartse beweging (xPercent per letter)
-    rotate: 10,           // schuine hoek in graden
-    origin: "50% 200%",   // draaipunt onder de letter, geeft de boog
-    arrowOut: 0.16,       // pijl weg naar rechts
-    arrowIn: 0.3,         // nieuwe pijl van links
-    // vijfhoek-morph: altijd 5 punten, zelfde volgorde
+    duration: 0.5,
+    stagger: 0.012,
+    ease: "expo.out",
+    move: 1.05,
+    drift: 12,
+    rotate: 10,
+    origin: "50% 200%",
+    arrowOut: 0.16,
+    arrowIn: 0.3,
     pentRest:  "polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%)",
     pentHover: "polygon(56% 2%, 100% 44%, 76% 98%, 14% 94%, 2% 32%)",
-    pentRotate: 6         // extra draai bij hover, bovenop de -12deg
+    pentRotate: 6
   };
 
-  // ---------------------------------------------------------------------------
-  // Main button
-  // ---------------------------------------------------------------------------
   function initMainButtons() {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     document.querySelectorAll(".main_button_wrap").forEach((btn) => {
-      if (btn.dataset.mainButtonInit) return; // niet dubbel initialiseren
+      if (btn.dataset.mainButtonInit) return;
       btn.dataset.mainButtonInit = "true";
 
       const block = btn.querySelector(".main_button");
@@ -50,7 +34,6 @@
       const outChars = new SplitText(labels[0], { type: "chars" }).chars;
       const inChars = new SplitText(labels[1], { type: "chars" }).chars;
 
-      // beginstand
       gsap.set([...outChars, ...inChars], { transformOrigin: c.origin });
       gsap.set(inChars, { xPercent: -c.drift, y: dist(), rotation: -c.rotate });
       gsap.set(labels[1], { visibility: "visible" });
@@ -117,20 +100,48 @@
         }
       };
 
-      // muis: hover
       btn.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") enter(); });
       btn.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") leave(); });
-
-      // toetsenbord: alleen bij zichtbare focus (tab), niet bij klikken
       btn.addEventListener("focus", () => { if (btn.matches(":focus-visible")) enter(); });
       btn.addEventListener("blur", () => { if (!btn.matches(":hover")) leave(); });
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // Init
-  // ---------------------------------------------------------------------------
+  function initDirectionalButtonHover() {
+    document.querySelectorAll("[data-btn-hover]").forEach((button) => {
+      button.addEventListener("mouseenter", handleHover);
+      button.addEventListener("mouseleave", handleHover);
+    });
+
+    function handleHover(event) {
+      const button = event.currentTarget;
+      const buttonRect = button.getBoundingClientRect();
+
+      const buttonWidth = buttonRect.width;
+      const buttonHeight = buttonRect.height;
+      const buttonCenterX = buttonRect.left + buttonWidth / 2;
+
+      const mouseX = event.clientX;
+      const mouseY = event.clientY;
+
+      const offsetXFromLeft = ((mouseX - buttonRect.left) / buttonWidth) * 100;
+      const offsetYFromTop = ((mouseY - buttonRect.top) / buttonHeight) * 100;
+
+      let offsetXFromCenter = ((mouseX - buttonCenterX) / (buttonWidth / 2)) * 50;
+      offsetXFromCenter = Math.abs(offsetXFromCenter);
+
+      const circle = button.querySelector(".nav_button_circle");
+      if (circle) {
+        circle.style.left = `${offsetXFromLeft.toFixed(1)}%`;
+        circle.style.top = `${offsetYFromTop.toFixed(1)}%`;
+        circle.style.width = `${115 + offsetXFromCenter.toFixed(1) * 2}%`;
+      }
+    }
+  }
+
   function init() {
+    initDirectionalButtonHover();
+
     if (typeof gsap === "undefined" || typeof SplitText === "undefined") {
       console.warn("[yellowlime] GSAP of SplitText niet gevonden. Staan ze aan in Webflow → Site settings → GSAP?");
       return;
