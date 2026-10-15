@@ -14,6 +14,10 @@
     pentRotate: 6
   };
 
+  const FLICK_CARDS = {
+    brightness: [1, 0.7, 0.5, 0.35]
+  };
+
   function initLenis() {
     if (typeof Lenis === "undefined") {
       console.warn("[yellowlime] Lenis niet gevonden.");
@@ -192,6 +196,7 @@
 
   function initFlickCards() {
     const sliders = document.querySelectorAll("[data-flick-cards-init]");
+    const b = FLICK_CARDS.brightness;
 
     sliders.forEach((slider) => {
       const list = slider.querySelector("[data-flick-cards-list]");
@@ -219,14 +224,14 @@
         else if (diff < -total / 2) diff += total;
 
         switch (diff) {
-          case  0: return { x: 0,   y: 0, rot: 0,   s: 1,   o: 1, z: 5 };
-          case  1: return { x: 25,  y: 1, rot: 10,  s: 0.9, o: 1, z: 4 };
-          case -1: return { x: -25, y: 1, rot: -10, s: 0.9, o: 1, z: 4 };
-          case  2: return { x: 45,  y: 5, rot: 15,  s: 0.8, o: 1, z: 3 };
-          case -2: return { x: -45, y: 5, rot: -15, s: 0.8, o: 1, z: 3 };
+          case  0: return { x: 0,   y: 0, rot: 0,   s: 1,   o: 1, b: b[0], z: 5 };
+          case  1: return { x: 25,  y: 1, rot: 10,  s: 0.9, o: 1, b: b[1], z: 4 };
+          case -1: return { x: -25, y: 1, rot: -10, s: 0.9, o: 1, b: b[1], z: 4 };
+          case  2: return { x: 45,  y: 5, rot: 15,  s: 0.8, o: 1, b: b[2], z: 3 };
+          case -2: return { x: -45, y: 5, rot: -15, s: 0.8, o: 1, b: b[2], z: 3 };
           default: {
             const dir = diff > 0 ? 1 : -1;
-            return { x: 55 * dir, y: 5, rot: 20 * dir, s: 0.6, o: 0, z: 2 };
+            return { x: 55 * dir, y: 5, rot: 20 * dir, s: 0.6, o: 0, b: b[3], z: 2 };
           }
         }
       }
@@ -254,6 +259,12 @@
             rotation: cfg.rot,
             scale: cfg.s,
             opacity: cfg.o
+          });
+
+          gsap.to(card, {
+            duration: 0.4,
+            ease: "power2.out",
+            filter: `brightness(${cfg.b})`
           });
         });
       }
@@ -296,7 +307,8 @@
               yPercent: mix("y"),
               rotation: mix("rot"),
               scale: mix("s"),
-              opacity: mix("o")
+              opacity: mix("o"),
+              filter: `brightness(${mix("b").toFixed(3)})`
             });
           });
         },
@@ -315,8 +327,8 @@
 
           if (shift !== 0) {
             activeIndex = (activeIndex + shift + total) % total;
-            renderCards(activeIndex);
           }
+          renderCards(activeIndex);
 
           gsap.to(this.target, {
             x: 0,
